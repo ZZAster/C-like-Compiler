@@ -12,21 +12,21 @@
 - 不支持进行位运算（|, &, ~）<br>
 - 不支持三元运算符（? :）<br>
 
-##程序结构
+## 程序结构
 - 语句以;作为结束，{}表示一个程序块<br>
 - 支持单行和多行注释 /*, //<br>
 - 变量使用前必须定义<br>
 - 函数使用前必须声明<br>
 - 支持数组运算，不支持指针和取地址运算，[]表示数组下标<br>
 
-##数据类型
+## 数据类型
 - int 整型 （只支持十进制数）<br>
 - double 浮点型（支持科学计数法）<br>
 - bool   布尔型<br>
 - string 字符串<br>
 - 不支持char类型<br>
 
-##其他
+## 其他
 - Keyword：if, else, while, for, print, scan, int, double, bool, string, void, return
 - Operator：+, -, *, /, %, =, ==, <, >, <=, >=, !=, !, ||, &&, (, ), [, ]
 - Separator：{, }, ;, ,
@@ -36,7 +36,7 @@
 - Value: NUMBER, BoolValue, String_value
 
 ---
-#词法规则
+# 词法规则
 - Integer<br>
   digit ::= [0-9]<br>
   integer ::= [1-9][0-9]*<br>
