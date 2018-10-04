@@ -6,7 +6,7 @@ import java.util.LinkedList;
 public class Analyzer {
     public static void main(String[] args) throws IOException
     {
-        Scan scan = new Scan("src\\source.cmm");
+        Scan scan = new Scan("source.cmm");
         printToken(scan.getTokens());
     }
 
