@@ -1,0 +1,15 @@
+int main()
+{
+    print("Hello, world");
+    int a = scan();
+    int b = ( 3 * (5 - 6) + 4e-2);
+    f();
+    return 0;
+}
+
+/*asdada*/
+
+void f()//asd
+{
+    int x = 5;
+}
