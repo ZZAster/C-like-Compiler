@@ -32,7 +32,7 @@
 - Separator：{, }, ;, ,
 - Other：", '
 - Command：//, /*, */
-- Identifier： 由数字、字母和下划线组成，但必须以字母开头且不能以下划线结尾
+- Identifier： 由数字、字母和下划线组成，但必须以字母开头
 - Value: NUMBER, BoolValue, String_value
 
 ---
@@ -53,3 +53,4 @@
 - Keyword
 
 ---
+# 语法规则
