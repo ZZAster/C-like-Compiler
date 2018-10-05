@@ -219,11 +219,15 @@ public class Scan {
                         temp.append(ch);
                         readChar();
                     }
+                    if (Character.isAlphabetic(ch))
+                        myExit();
                     tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
                 }
                 else if (ch == 'e')
                 {
                     readChar();
+                    if (Character.isAlphabetic(ch))
+                        myExit();
                     if (Character.isDigit(ch) || ch == '-' || ch == '+')
                     {
                         temp.append('e');
@@ -241,7 +245,11 @@ public class Scan {
                         myExit();
                 }
                 else
+                {
+                    if (Character.isAlphabetic(ch))
+                        myExit();
                     tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
+                }
                 temp.delete(0, temp.length());
                 continue;
             }
@@ -294,7 +302,7 @@ public class Scan {
 
     private void myExit() throws IOException
     {
-        System.err.printf("Invalid character %c occurs at line %2d.\n", ch, lines);
+        System.err.printf("Invalid character '%c' occurs at line %2d.\n", ch, lines);
         input.close();
         System.exit(1);
     }

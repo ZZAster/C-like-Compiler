@@ -11,5 +11,5 @@ int main()
 
 void f()//asd
 {
-    int x = 5;
+    int x = 5a;
 }
