@@ -8,6 +8,7 @@ public class Scan {
      private int lines;
      private int trans;
      private char ch;
+     private String filename;
      private LinkedList<Token> tokens = new LinkedList<>();
 
      private String[] keywords = {"if", "else", "while", "for", "print", "scan", "int", "double",
@@ -15,8 +16,9 @@ public class Scan {
 
     public Scan(String filename) throws IOException
     {
-        input =new BufferedInputStream(new FileInputStream(filename));
+        input = new BufferedInputStream(new FileInputStream(filename));
         lines = 1;
+        this.filename = new File(filename).getName();
     }
 
     public LinkedList<Token> getTokens() throws IOException
@@ -114,14 +116,14 @@ public class Scan {
                     if (ch == '|')
                         tokens.add(new Token("||", Type.OR, lines));
                     else
-                        myExit();
+                        lexicalException();
                     continue;
                 case '&':
                     readChar();
                     if (ch == '&')
                         tokens.add(new Token("&&", Type.AND, lines));
                     else
-                       myExit();
+                       lexicalException();
                     continue;
             }
             if (ch == '/')
@@ -175,7 +177,7 @@ public class Scan {
                 else if (isId(s))
                     tokens.add(new Token(s, Type.IDENTIFIER, lines));
                 else
-                    myExit();
+                    lexicalException();
                 temp.delete(0, temp.length());//清空临时字符串
                 continue;
             }
@@ -188,7 +190,7 @@ public class Scan {
                 while(ch != '\"' || flag)
                 {
                     if (trans == -1 || ch == '\n')
-                        myExit();
+                        lexicalException();
                     if (ch == '\\' && !flag)
                         flag = true;
                     else
@@ -220,14 +222,14 @@ public class Scan {
                         readChar();
                     }
                     if (Character.isAlphabetic(ch))
-                        myExit();
+                        lexicalException();
                     tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
                 }
                 else if (ch == 'e')
                 {
                     readChar();
                     if (Character.isAlphabetic(ch))
-                        myExit();
+                        lexicalException();
                     if (Character.isDigit(ch) || ch == '-' || ch == '+')
                     {
                         temp.append('e');
@@ -242,18 +244,18 @@ public class Scan {
                         tokens.add(new Token(temp.toString(), Type.NUMBER, lines, value));
                     }
                     else
-                        myExit();
+                        lexicalException();
                 }
                 else
                 {
                     if (Character.isAlphabetic(ch))
-                        myExit();
+                        lexicalException();
                     tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
                 }
                 temp.delete(0, temp.length());
                 continue;
             }
-            myExit();
+            lexicalException();
         }
         input.close();
         return tokens;
@@ -300,9 +302,9 @@ public class Scan {
             readChar();
     }
 
-    private void myExit() throws IOException
+    private void lexicalException() throws IOException
     {
-        System.err.printf("Invalid character '%c' occurs at line %2d.\n", ch, lines);
+        System.err.printf("File <%s>, Line %2d:\n\tLexical Error: Invalid characters '%c'.", filename, lines, ch);
         input.close();
         System.exit(1);
     }
