@@ -223,10 +223,16 @@ public class Scan {
                         readChar();
                     }
                     setFirst();
-                    if (Character.isAlphabetic(ch))
+                    if (Character.isAlphabetic(ch) && Character.toLowerCase(ch) != 'e')
                         lexicalException();
-                    tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
-                } else if (ch == 'e' || ch == 'E') {
+                    if (Character.toLowerCase(ch) != 'e')
+                    {
+                        tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
+                        temp.delete(0, temp.length());
+                        continue;
+                    }
+                }
+                if (ch == 'e' || ch == 'E') {
                     setFirst();
                     readChar();
                     if (Character.isAlphabetic(ch))
@@ -266,10 +272,10 @@ public class Scan {
         int i;
         if ((i = stringBuilder.indexOf("e")) == -1)
             i = stringBuilder.indexOf("E");
-        String integer = stringBuilder.substring(0, i);
+        String double_num = stringBuilder.substring(0, i);
         String little = stringBuilder.substring(i + 1);
-        int p = Integer.parseInt(integer);
-        int q = Integer.parseInt(little);
+        double p = Double.parseDouble(double_num);
+        double q = Double.parseDouble(little);
         double value = p * Math.pow(10, q);
         return "" + value;
     }
