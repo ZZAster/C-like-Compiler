@@ -15,6 +15,10 @@ public enum Type {
     VOID,
     RETURN,
     //操作符
+    //一元
+    POSITIVE,
+    NEGATIVE,
+    //二元
     ADD,
     SUB,
     MUL,
