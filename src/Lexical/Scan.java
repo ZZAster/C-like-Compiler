@@ -6,6 +6,7 @@ import java.util.LinkedList;
 public class Scan {
     private InputStream input;
     private int lines;
+    private int fline;
     private int pos;
     private int fpos;
     private int trans;
@@ -196,7 +197,7 @@ public class Scan {
                     temp.append(ch);
                     readChar();
                 }
-                tokens.add(new Token(temp.toString(), Type.STRING_VALUE, lines));
+                tokens.add(new Token(temp.toString(), Type.STRING_VALUE, lines, escape_trans(temp)));
                 tokens.add(new Token("\"", Type.DOUBLE_QUOTATION, lines));
                 temp.delete(0, temp.length());
                 readChar();
@@ -292,22 +293,45 @@ public class Scan {
         return (type == Type.NUMBER || type == Type.RIGHT_PARENT || type == Type.IDENTIFIER);
     }
 
-    /* 貌似不需要这个函数
-    private boolean isId(String s)
+    private String escape_trans(StringBuilder origin) throws IOException
     {
-        for (char c : s.toCharArray())
+        StringBuilder output = new StringBuilder();
+        // 对\", \t, \n, \\进行转化
+        for (int i = 0; i < origin.length(); i++)
         {
-            if (!Character.isAlphabetic(c) && !Character.isDigit(c) && c != '_')
-                return false;
+            if (origin.charAt(i) == '\\')
+            {
+                char curr = origin.charAt(++i);
+                switch (curr){
+                    case '"':
+                        output.append('\"');
+                        break;
+                    case 't':
+                        output.append('\t');
+                        break;
+                    case 'n':
+                        output.append('\n');
+                        break;
+                    case '\\':
+                        output.append('\\');
+                        break;
+                    default:
+                        fch = curr;
+                        fpos += i+1;
+                        lexicalException();
+                }
+            }
+            else
+                output.append(origin.charAt(i));
         }
-        return true;
+        return output.toString();
     }
-    */
 
     private void setFirst()
     {
         fpos = pos;
         fch = ch;
+        fline = lines;
     }
 
     private void readChar() throws IOException
@@ -331,7 +355,7 @@ public class Scan {
     private void lexicalException() throws IOException
     {
         System.err.printf("File <%s>, Line %-2d Pos %-2d:\n\tLexical Error: Invalid characters '%c'.",
-                filename, lines, fpos, fch);
+                filename, fline, fpos, fch);
         input.close();
         System.exit(1);
     }

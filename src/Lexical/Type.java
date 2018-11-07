@@ -50,5 +50,7 @@ public enum Type {
     //Values
     NUMBER,
     BOOLEAN,
-    STRING_VALUE
+    STRING_VALUE,
+    //用于替代null
+    NULL,
 }
