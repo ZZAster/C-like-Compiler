@@ -1,8 +1,8 @@
 package Parse;
 
 public enum NodeType {
-    //根节点，用作空节点
-    ROOT,
+    //空节点
+    NULL,
     //非终结符节点
     EXPRESSION,
     ADD_EXPR,

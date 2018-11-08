@@ -22,6 +22,13 @@ public class Parser {
         return TreeList;
     }
 
+    //输入token序列，输出算术表达式的语法树
+    public Node test(LinkedList<Token> tokens)
+    {
+        tokenIterator = tokens.listIterator();
+        return getAddExpr();
+    }
+
     //每次循环中语法分析的起点
     private Node getTree()
     {
@@ -76,16 +83,22 @@ public class Parser {
                 //todo 加入逻辑表达式后这里可能有点问题，如逻辑表达式能否作为操作数？
                 ((Inner) node).setLeft(getAddExpr());
                 consume(Type.RIGHT_PARENT);
+                break;
             case NUMBER:
                 ((Inner) node).setLeft(getNumber());
+                break;
             case IDENTIFIER:
                 ((Inner) node).setLeft(getVariable());
+                break;
             case POSITIVE:
             case NEGATIVE:
                 ((Inner) node).setMiddle(getUnaryOp());
                 ((Inner) node).setLeft(getOperand());
+                break;
             default:
                 //todo 报错
+                System.out.println(nextType() + ": 调用getOperand()时出现问题。");
+                System.exit(1);
         }
         return node;
     }
@@ -178,6 +191,8 @@ public class Parser {
             if (tokenIterator.next().getType() == type)
                 return;
         //TODO 进行报错
+        System.out.println("调用consume()时出现问题。");
+        System.exit(1);
     }
 
     /**
