@@ -56,6 +56,31 @@ public class Parser {
         return node;
     }
 
+    //识别赋值语句
+    private Node getAssignStmt() throws ParseException
+    {
+        Node node = new Inner(NodeType.Assign_Stmt);
+        Node left = getVariable();
+        if (isMatch(Type.ASSIGN))
+        {
+            ((Inner) node).setLeft(left);
+            ((Inner) node).setMiddle(getAssignOp());
+        }
+        else
+            return left;
+        if (isMatch(Type.LEFT_PARENT))
+        {
+            consume(Type.LEFT_PARENT);
+            ((Inner) node).setRight(getAddExpr());
+            consume(Type.RIGHT_PARENT);
+        }
+        else if (isMatch(Type.NUMBER))
+            ((Inner) node).setRight(getNumber());
+        else
+            ((Inner) node).setRight(getAssignStmt());
+        return node;
+    }
+
     //识别乘法表达式
     private Node getMulExpr() throws ParseException
     {
@@ -82,6 +107,15 @@ public class Parser {
                 consume(Type.LEFT_PARENT);
                 //((Inner) node).setLeft(getAddExpr());
                 node = getAddExpr();
+                if ((node.getNodeType() == NodeType.VARIABLE || node.getNodeType() == NodeType.IDENTIFIER)
+                        && isMatch(Type.ASSIGN))
+                {
+                    Node temp = new Inner(NodeType.Assign_Stmt);
+                    ((Inner) temp).setLeft(node);
+                    ((Inner) temp).setMiddle(getAssignOp());
+                    ((Inner) temp).setRight(getAssignStmt());
+                    node = temp;
+                }
                 consume(Type.RIGHT_PARENT);
                 break;
             case NUMBER:
@@ -121,46 +155,82 @@ public class Parser {
     }
 
     //识别标识符
-    private Node getID()
+    private Node getID() throws ParseException
     {
-        Node node = new Leaf(NodeType.IDENTIFIER);
-        ((Leaf) node).setToken(tokenIterator.next());
-        return node;
+        if (isMatch(Type.IDENTIFIER))
+        {
+            Node node = new Leaf(NodeType.IDENTIFIER);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Identifier");
     }
 
     //识别数值
-    private Node getNumber()
+    private Node getNumber() throws ParseException
     {
-        Node node = new Leaf(NodeType.NUMBER);
-        ((Leaf) node).setToken(tokenIterator.next());
-        return node;
+        if (isMatch(Type.NUMBER))
+        {
+            Node node = new Leaf(NodeType.NUMBER);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Number");
     }
 
     //识别加法符号
-    private Node getAddOp()
+    private Node getAddOp() throws ParseException
     {
-        Node node = new Leaf(NodeType.ADD_OP);
-        ((Leaf) node).setToken(tokenIterator.next());
-        return node;
+        if (isMatch(Type.ADD, Type.SUB))
+        {
+            Node node = new Leaf(NodeType.ADD_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Add Operation");
     }
 
     //识别乘法符号
-    private Node getMulOp()
+    private Node getMulOp() throws ParseException
     {
-        Node node = new Leaf(NodeType.MUL_OP);
-        ((Leaf) node).setToken(tokenIterator.next());
-        return node;
+        if (isMatch(Type.MUL, Type.DIV, Type.MOD))
+        {
+            Node node = new Leaf(NodeType.MUL_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Mul Operation");
     }
 
     //识别正负号
-    private Node getUnaryOp()
+    private Node getUnaryOp() throws ParseException
     {
-        Node node = new Leaf(NodeType.UNARY_OP);
-        ((Leaf) node).setToken(tokenIterator.next());
-        return node;
+        if (isMatch(Type.POSITIVE, Type.NEGATIVE))
+        {
+            Node node = new Leaf(NodeType.UNARY_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Unary Operation");
     }
 
-
+    //识别赋值符号
+    private Node getAssignOp() throws ParseException
+    {
+        if (isMatch(Type.ASSIGN))
+        {
+            Node node = new Leaf(NodeType.Assign_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Assign Operation");
+    }
 
     //对Token序列的操作集
     /**
@@ -188,8 +258,11 @@ public class Parser {
     private void consume(Type type) throws ParseException
     {
         if (tokenIterator.hasNext())
-            if (tokenIterator.next().getType() == type)
+        {
+            current = tokenIterator.next();
+            if (current.getType() == type)
                 return;
+        }
         //TODO 进行报错
         throw new ParseException(current, type.toString());
     }
