@@ -41,7 +41,7 @@ public class Scan {
                         plus = Type.ADD;
                     else
                         plus = Type.POSITIVE;
-                    tokens.add(new Token("+", plus, lines));
+                    tokens.add(new Token("+", plus, lines, pos));
                     readChar();
                     continue;
                 case '-':
@@ -50,82 +50,82 @@ public class Scan {
                         minus = Type.SUB;
                     else
                         minus = Type.NEGATIVE;
-                    tokens.add(new Token("-", minus, lines));
+                    tokens.add(new Token("-", minus, lines, pos));
                     readChar();
                     continue;
                 case '*':
-                    tokens.add(new Token("*", Type.MUL, lines));
+                    tokens.add(new Token("*", Type.MUL, lines, pos));
                     readChar();
                     continue;
                 case '%':
-                    tokens.add(new Token("%", Type.MOD, lines));
+                    tokens.add(new Token("%", Type.MOD, lines, pos));
                     readChar();
                     continue;
                 case '(':
-                    tokens.add(new Token("(", Type.LEFT_PARENT, lines));
+                    tokens.add(new Token("(", Type.LEFT_PARENT, lines, pos));
                     readChar();
                     continue;
                 case ')':
-                    tokens.add(new Token(")", Type.RIGHT_PARENT, lines));
+                    tokens.add(new Token(")", Type.RIGHT_PARENT, lines, pos));
                     readChar();
                     continue;
                 case '{':
-                    tokens.add(new Token("{", Type.LEFT_BRACE, lines));
+                    tokens.add(new Token("{", Type.LEFT_BRACE, lines, pos));
                     readChar();
                     continue;
                 case '}':
-                    tokens.add(new Token("}", Type.RIGHT_BRACE, lines));
+                    tokens.add(new Token("}", Type.RIGHT_BRACE, lines, pos));
                     readChar();
                     continue;
                 case '[':
-                    tokens.add(new Token("[", Type.LEFT_BRACKET, lines));
+                    tokens.add(new Token("[", Type.LEFT_BRACKET, lines, pos));
                     readChar();
                     continue;
                 case ']':
-                    tokens.add(new Token("]", Type.RIGHT_BRACKET, lines));
+                    tokens.add(new Token("]", Type.RIGHT_BRACKET, lines, pos));
                     readChar();
                     continue;
                 case ';':
-                    tokens.add(new Token(";", Type.SEMICOLON, lines));
+                    tokens.add(new Token(";", Type.SEMICOLON, lines, pos));
                     readChar();
                     continue;
                 case ',':
-                    tokens.add(new Token(",", Type.COMMA, lines));
+                    tokens.add(new Token(",", Type.COMMA, lines, pos));
                     readChar();
                     continue;
                 case '=':
                     readChar();
                     if (ch == '=')
-                        tokens.add(new Token("==", Type.EQUAL, lines));
+                        tokens.add(new Token("==", Type.EQUAL, lines, pos));
                     else
-                        tokens.add(new Token("=", Type.ASSIGN, lines));
+                        tokens.add(new Token("=", Type.ASSIGN, lines, pos));
                     continue;
                 case '<':
                     readChar();
                     if (ch == '=')
-                        tokens.add(new Token("<=", Type.LEFT_EQUAL, lines));
+                        tokens.add(new Token("<=", Type.LEFT_EQUAL, lines, pos));
                     else
-                        tokens.add(new Token("<", Type.LEFT_THAN, lines));
+                        tokens.add(new Token("<", Type.LEFT_THAN, lines, pos));
                     continue;
                 case '>':
                     readChar();
                     if (ch == '=')
-                        tokens.add(new Token(">=", Type.RIGHT_EQUAL, lines));
+                        tokens.add(new Token(">=", Type.RIGHT_EQUAL, lines, pos));
                     else
-                        tokens.add(new Token(">", Type.RIGHT_THAN, lines));
+                        tokens.add(new Token(">", Type.RIGHT_THAN, lines, pos));
                     continue;
                 case '!':
                     readChar();
                     if (ch == '=')
-                        tokens.add(new Token("!=", Type.NOT_EQUAL, lines));
+                        tokens.add(new Token("!=", Type.NOT_EQUAL, lines, pos));
                     else
-                        tokens.add(new Token("!", Type.NOT, lines));
+                        tokens.add(new Token("!", Type.NOT, lines, pos));
                     continue;
                 case '|':
                     setFirst();
                     readChar();
                     if (ch == '|')
-                        tokens.add(new Token("||", Type.OR, lines));
+                        tokens.add(new Token("||", Type.OR, lines, pos));
                     else
                         lexicalException();
                     continue;
@@ -133,7 +133,7 @@ public class Scan {
                     setFirst();
                     readChar();
                     if (ch == '&')
-                        tokens.add(new Token("&&", Type.AND, lines));
+                        tokens.add(new Token("&&", Type.AND, lines, pos));
                     else
                         lexicalException();
                     continue;
@@ -160,7 +160,7 @@ public class Scan {
                     }
                     continue;
                 } else {
-                    tokens.add(new Token("/", Type.DIV, lines));
+                    tokens.add(new Token("/", Type.DIV, lines, pos));
                     continue;
                 }
             }
@@ -173,18 +173,18 @@ public class Scan {
                 int i;
                 String s = temp.toString();
                 if (s.equals("true") || s.equals("false"))
-                    tokens.add(new Token(s, Type.BOOLEAN, lines));
+                    tokens.add(new Token(s, Type.BOOLEAN, lines, pos));
                 else if ((i = isKeyword(s)) >= 0)
-                    tokens.add(new Token(s, Type.values()[i], lines));
+                    tokens.add(new Token(s, Type.values()[i], lines, pos));
                 else
-                    tokens.add(new Token(s, Type.IDENTIFIER, lines));
+                    tokens.add(new Token(s, Type.IDENTIFIER, lines, pos));
                 temp.delete(0, temp.length());//清空临时字符串
                 continue;
             }
             //扫描是否是字符串
             if (ch == '\"') {
                 setFirst();
-                tokens.add(new Token("\"", Type.DOUBLE_QUOTATION, lines));
+                tokens.add(new Token("\"", Type.DOUBLE_QUOTATION, lines, pos));
                 readChar();
                 boolean flag = false; // 记录是否出现转义符'\'
                 while (ch != '\"' || flag) {
@@ -197,8 +197,8 @@ public class Scan {
                     temp.append(ch);
                     readChar();
                 }
-                tokens.add(new Token(temp.toString(), Type.STRING_VALUE, lines, escape_trans(temp)));
-                tokens.add(new Token("\"", Type.DOUBLE_QUOTATION, lines));
+                tokens.add(new Token(temp.toString(), Type.STRING_VALUE, lines, pos, escape_trans(temp)));
+                tokens.add(new Token("\"", Type.DOUBLE_QUOTATION, lines, pos));
                 temp.delete(0, temp.length());
                 readChar();
                 continue;
@@ -228,7 +228,7 @@ public class Scan {
                         lexicalException();
                     if (Character.toLowerCase(ch) != 'e')
                     {
-                        tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
+                        tokens.add(new Token(temp.toString(), Type.NUMBER, lines, pos));
                         temp.delete(0, temp.length());
                         continue;
                     }
@@ -251,14 +251,14 @@ public class Scan {
                             lexicalException();
                         }
                         String value = getRealValue(temp);
-                        tokens.add(new Token(temp.toString(), Type.NUMBER, lines, value));
+                        tokens.add(new Token(temp.toString(), Type.NUMBER, lines, pos, value));
                     } else
                         lexicalException();
                 } else {
                     setFirst();
                     if (Character.isAlphabetic(ch))
                         lexicalException();
-                    tokens.add(new Token(temp.toString(), Type.NUMBER, lines));
+                    tokens.add(new Token(temp.toString(), Type.NUMBER, lines, pos));
                 }
                 temp.delete(0, temp.length());
                 continue;

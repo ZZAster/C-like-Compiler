@@ -6,7 +6,7 @@ import Parse.*;
 import java.io.IOException;
 
 public class MyRunner {
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args) throws IOException, ParseException
     {
         Scan scan = new Scan("source.cmm");
         Parser parser = new Parser();

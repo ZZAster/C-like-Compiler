@@ -4,20 +4,30 @@ public class Token {
     private String name;
     private Type type;
     private int lines;
+    private int pos;
     private String value;
 
-    public Token(String name, Type type, int lines)
+    public Token(String name, Type type, int lines, int pos)
     {
         this.name = name;
         this.type = type;
         this.lines = lines;
+        this.pos = pos;
         value = name;
     }
 
-    public Token(String name, Type type, int lines, String value)
+    public Token(String name, Type type, int lines, int pos, String value)
     {
-        this(name, type, lines);
+        this(name, type, lines, pos);
         this.value = value;
+    }
+
+    public int getPos() {
+        return pos;
+    }
+
+    public void setPos(int pos) {
+        this.pos = pos;
     }
 
     public int getLines() {

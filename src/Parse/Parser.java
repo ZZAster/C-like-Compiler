@@ -23,7 +23,7 @@ public class Parser {
     }
 
     //输入token序列，输出算术表达式的语法树
-    public Node test(LinkedList<Token> tokens)
+    public Node test(LinkedList<Token> tokens) throws ParseException
     {
         tokenIterator = tokens.listIterator();
         return getAddExpr();
@@ -41,7 +41,7 @@ public class Parser {
     }
 
     //识别加法表达式
-    private Node getAddExpr()
+    private Node getAddExpr() throws ParseException
     {
         Node node = new Inner(NodeType.ADD_EXPR);
         Node left = getMulExpr();
@@ -52,12 +52,12 @@ public class Parser {
             ((Inner) node).setRight(getAddExpr());
         }
         else
-            ((Inner) node).setLeft(left);
+            return left;//((Inner) node).setLeft(left);
         return node;
     }
 
     //识别乘法表达式
-    private Node getMulExpr()
+    private Node getMulExpr() throws ParseException
     {
         Node node = new Inner(NodeType.MUL_EXPR);
         Node left = getOperand();
@@ -68,27 +68,27 @@ public class Parser {
             ((Inner) node).setRight(getMulExpr());
         }
         else
-            ((Inner) node).setLeft(left);
+            return left;//((Inner) node).setLeft(left);
         return node;
     }
 
     //识别操作数
-    private Node getOperand()
+    private Node getOperand() throws ParseException
     {
         Node node = new Inner(NodeType.OPERAND);
         switch (nextType())
         {
             case LEFT_PARENT:
                 consume(Type.LEFT_PARENT);
-                //todo 加入逻辑表达式后这里可能有点问题，如逻辑表达式能否作为操作数？
-                ((Inner) node).setLeft(getAddExpr());
+                //((Inner) node).setLeft(getAddExpr());
+                node = getAddExpr();
                 consume(Type.RIGHT_PARENT);
                 break;
             case NUMBER:
-                ((Inner) node).setLeft(getNumber());
+                node = getNumber();//((Inner) node).setLeft(getNumber());
                 break;
             case IDENTIFIER:
-                ((Inner) node).setLeft(getVariable());
+                node = getVariable();//((Inner) node).setLeft(getVariable());
                 break;
             case POSITIVE:
             case NEGATIVE:
@@ -97,14 +97,13 @@ public class Parser {
                 break;
             default:
                 //todo 报错
-                System.out.println(nextType() + ": 调用getOperand()时出现问题。");
-                System.exit(1);
+                throw new ParseException(current, "Operand");
         }
         return node;
     }
 
     //识别变量名
-    private Node getVariable()
+    private Node getVariable() throws ParseException
     {
         Node node = new Inner(NodeType.VARIABLE);
         Node left = getID();
@@ -117,7 +116,7 @@ public class Parser {
             consume(Type.RIGHT_BRACKET);
         }
         else
-            ((Inner) node).setLeft(left);
+            return left;//((Inner) node).setLeft(left);
         return node;
     }
 
@@ -172,7 +171,8 @@ public class Parser {
     private Type nextType()
     {
         if (tokenIterator.hasNext()) {
-            Type type = tokenIterator.next().getType();
+            current = tokenIterator.next();
+            Type type = current.getType();
             tokenIterator.previous(); // 还原迭代器的指针位置
             return type;
         }
@@ -185,14 +185,13 @@ public class Parser {
      * 若不匹配则进行报错
      * @param type  要求进行匹配的type
      */
-    private void consume(Type type)
+    private void consume(Type type) throws ParseException
     {
         if (tokenIterator.hasNext())
             if (tokenIterator.next().getType() == type)
                 return;
         //TODO 进行报错
-        System.out.println("调用consume()时出现问题。");
-        System.exit(1);
+        throw new ParseException(current, type.toString());
     }
 
     /**
