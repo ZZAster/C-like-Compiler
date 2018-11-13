@@ -16,6 +16,8 @@ public class MyRunner extends JFrame{
     public MyRunner(){
         super("Calculator");
 
+        Font font = new Font("微软雅黑",Font.PLAIN,20);
+
         setSize(800, 500);
         setResizable(false);
         setLocationRelativeTo(null);
@@ -24,16 +26,20 @@ public class MyRunner extends JFrame{
         this.add(panel,BorderLayout.NORTH);
 
         JLabel input_lable = new JLabel("Input: ");
+        input_lable.setFont(font);
         JTextField input_field = new JTextField(20);
+        input_field.setFont(font);
         panel.add(input_lable);
         panel.add(input_field);
 
-        JTextArea output_area = new JTextArea(5,20);
+        JTextArea output_area = new JTextArea();
+        output_area.setFont(font);
         JScrollPane jsp = new JScrollPane(output_area);
         jsp.setVerticalScrollBarPolicy( JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         this.add(jsp);
 
         JButton exc_btn = new JButton("Execute");
+        exc_btn.setFont(font);
         exc_btn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e){
@@ -44,9 +50,13 @@ public class MyRunner extends JFrame{
                 else {
                     getInput(input);
 
-                    Scan scan = new Scan("input.txt");
-                    Parser parser = new Parser();
-                    output_area.setText(parser.test(scan.getTokens()).toString());
+                    try {
+                        Scan scan = new Scan("input.txt");
+                        Parser parser = new Parser();
+                        output_area.setText(parser.test(scan.getTokens()).toString());
+                    }catch(ParseException exc){
+                        output_area.setText(exc.getMessage());
+                    }
                 }
             }
         });
