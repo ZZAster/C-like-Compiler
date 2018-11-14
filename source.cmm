@@ -1,2 +1,31 @@
+<<<<<<< HEAD
 
 (2 + (a = b = (2 + 3)) * (4 + a[(3+4)]))
+=======
+//'#?\....
+//string a == "string error
+///* incomplete comment
+//4123E
+//3.423E-2as
+//_ac
+//m ain
+
+int main()
+{
+    print("H'ello, \"wo#rld");
+    int a_c = scan();
+    int b = ( 3 * (5 - 6) + (4--4 e-2*2)), a;
+    int c[5] = {1, 2, 3, 4, 5};
+    for(int i = 0; i < 10; i = i + 1)
+    {
+        print(i);
+    }
+    f();
+    return 0;
+}
+
+void f()//asd
+{
+    int x = 5;//this is comment
+}
+>>>>>>> 7d54b25072e34e91bd33962415887908f3eb2b49

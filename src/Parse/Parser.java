@@ -23,11 +23,10 @@ public class Parser {
     }
 
     //输入token序列，输出算术表达式的语法树
-    public Node test(LinkedList<Token> tokens) throws ParseException
-    {
-        tokenIterator = tokens.listIterator();
-        return getAddExpr();
-    }
+       public Node test(LinkedList<Token> tokens) throws ParseException{
+           tokenIterator = tokens.listIterator();
+           return getAddExpr();
+       }
 
     //每次循环中语法分析的起点
     private Node getTree()
