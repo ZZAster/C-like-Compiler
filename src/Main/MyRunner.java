@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class MyRunner extends JFrame{
     public MyRunner(){
@@ -18,18 +17,18 @@ public class MyRunner extends JFrame{
 
         Font font = new Font("微软雅黑",Font.PLAIN,20);
 
-        setSize(800, 500);
+        setSize(1200, 800);
         setResizable(false);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel();
         this.add(panel,BorderLayout.NORTH);
 
-        JLabel input_lable = new JLabel("Input: ");
-        input_lable.setFont(font);
+        JLabel input_label = new JLabel("Input: ");
+        input_label.setFont(font);
         JTextField input_field = new JTextField(20);
         input_field.setFont(font);
-        panel.add(input_lable);
+        panel.add(input_label);
         panel.add(input_field);
 
         JTextArea output_area = new JTextArea();
@@ -54,8 +53,8 @@ public class MyRunner extends JFrame{
                         Scan scan = new Scan("input.txt");
                         Parser parser = new Parser();
                         output_area.setText(parser.test(scan.getTokens()).toString());
-                    }catch(ParseException exc){
-                        output_area.setText(exc.getMessage());
+                    } catch (IOException | ParseException | LexicalException ie){
+                        output_area.setText(ie.getMessage());
                     }
                 }
             }
@@ -68,9 +67,9 @@ public class MyRunner extends JFrame{
     public static void getInput(String input){
         try {
             File input_file = new File("input.txt");
-            FileWriter fileWritter = new FileWriter(input_file.getName());
-            fileWritter.write(input);
-            fileWritter.close();
+            FileWriter fileWriter = new FileWriter(input_file.getName());
+            fileWriter.write(input);
+            fileWriter.close();
 
         }catch(IOException e){
             e.printStackTrace();

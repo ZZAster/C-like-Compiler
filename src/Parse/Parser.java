@@ -58,6 +58,8 @@ public class Parser {
     //识别赋值语句
     private Node getAssignStmt() throws ParseException
     {
+        if (isMatch(Type.NUMBER))
+            return getNumber();
         Node node = new Inner(NodeType.Assign_Stmt);
         Node left = getVariable();
         if (isMatch(Type.ASSIGN))
@@ -73,8 +75,6 @@ public class Parser {
             ((Inner) node).setRight(getAddExpr());
             consume(Type.RIGHT_PARENT);
         }
-        else if (isMatch(Type.NUMBER))
-            ((Inner) node).setRight(getNumber());
         else
             ((Inner) node).setRight(getAssignStmt());
         return node;

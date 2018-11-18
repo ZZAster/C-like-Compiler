@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 
 public class Analyzer {
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args) throws IOException, LexicalException
     {
         Scan scan = new Scan("source.cmm");
         printToken(scan.getTokens());
