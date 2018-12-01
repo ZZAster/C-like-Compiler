@@ -104,28 +104,40 @@ public class Scan {
                 case '=':
                     readChar();
                     if (ch == '=')
+                    {
                         tokens.add(new Token("==", Type.EQUAL, lines, pos));
+                        readChar();
+                    }
                     else
                         tokens.add(new Token("=", Type.ASSIGN, lines, pos));
                     continue;
                 case '<':
                     readChar();
                     if (ch == '=')
+                    {
                         tokens.add(new Token("<=", Type.LEFT_EQUAL, lines, pos));
+                        readChar();
+                    }
                     else
                         tokens.add(new Token("<", Type.LEFT_THAN, lines, pos));
                     continue;
                 case '>':
                     readChar();
                     if (ch == '=')
+                    {
                         tokens.add(new Token(">=", Type.RIGHT_EQUAL, lines, pos));
+                        readChar();
+                    }
                     else
                         tokens.add(new Token(">", Type.RIGHT_THAN, lines, pos));
                     continue;
                 case '!':
                     readChar();
                     if (ch == '=')
+                    {
                         tokens.add(new Token("!=", Type.NOT_EQUAL, lines, pos));
+                        readChar();
+                    }
                     else
                         tokens.add(new Token("!", Type.NOT, lines, pos));
                     continue;
@@ -133,7 +145,10 @@ public class Scan {
                     setFirst();
                     readChar();
                     if (ch == '|')
+                    {
                         tokens.add(new Token("||", Type.OR, lines, pos));
+                        readChar();
+                    }
                     else
                         throw new LexicalException(filename, fpos, fline, fch);
                     continue;
@@ -141,7 +156,10 @@ public class Scan {
                     setFirst();
                     readChar();
                     if (ch == '&')
+                    {
                         tokens.add(new Token("&&", Type.AND, lines, pos));
+                        readChar();
+                    }
                     else
                         throw new LexicalException(filename, fpos, fline, fch);
                     continue;

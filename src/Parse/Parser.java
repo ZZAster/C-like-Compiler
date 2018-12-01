@@ -25,7 +25,7 @@ public class Parser {
     //输入token序列，输出算术表达式的语法树
        public Node test(LinkedList<Token> tokens) throws ParseException{
            tokenIterator = tokens.listIterator();
-           Node node = getAddExpr();
+           Node node = getExp();
            if (tokenIterator.hasNext())
                throw new ParseException(current, "Empty");
            return node;
@@ -40,6 +40,96 @@ public class Parser {
             //TODO 整个模块的语法分析
         }
         return null;
+    }
+
+    //识别表达式
+    private Node getExp() throws ParseException
+    {
+        return getOrExpr();
+    }
+
+    //识别逻辑或表达式
+    private Node getOrExpr() throws ParseException
+    {
+        Node left = getAndExpr();
+        return getOrExpr(left);
+    }
+
+    private Node getOrExpr(Node left) throws ParseException
+    {
+        if (isMatch(Type.OR))
+        {
+            Node new_left = new Inner(NodeType.EXPRESSION);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getLogOp());
+            ((Inner) new_left).setRight(getAndExpr());
+            return getOrExpr(new_left);
+        }
+        else
+            return left;
+    }
+
+    //识别逻辑与表达式
+    private Node getAndExpr() throws ParseException
+    {
+        Node left = getComExpr();
+        return getAndExpr(left);
+    }
+
+    private Node getAndExpr(Node left) throws ParseException
+    {
+        if (isMatch(Type.AND))
+        {
+            Node new_left = new Inner(NodeType.LOG_EXPR);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getLogOp());
+            ((Inner) new_left).setRight(getJudExpr());
+            return getAndExpr(new_left);
+        }
+        else
+            return left;
+    }
+
+    //识别判等表达式
+    private Node getJudExpr() throws ParseException
+    {
+        Node left = getComExpr();
+        return getJudExpr(left);
+    }
+
+    private Node getJudExpr(Node left) throws ParseException
+    {
+        if (isMatch(Type.EQUAL, Type.NOT_EQUAL))
+        {
+            Node new_left = new Inner(NodeType.JUD_EXPR);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getJudOp());
+            ((Inner) new_left).setRight(getComExpr());
+            return getJudExpr(new_left);
+        }
+        else
+            return left;
+    }
+
+    //识别比较表达式
+    private Node getComExpr() throws ParseException
+    {
+        Node left = getAddExpr();
+        return getComExpr(left);
+    }
+
+    private Node getComExpr(Node left) throws ParseException
+    {
+        if (isMatch(Type.LEFT_THAN, Type.LEFT_EQUAL, Type.RIGHT_EQUAL, Type.RIGHT_THAN))
+        {
+            Node new_left = new Inner(NodeType.COM_EXPR);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getComOp());
+            ((Inner) new_left).setRight(getAddExpr());
+            return getComExpr(new_left);
+        }
+        else
+            return left;
     }
 
     //识别加法表达式
@@ -70,11 +160,11 @@ public class Parser {
         */
         //左递归实现
         Node left = getMulExpr();
-        return getF(left);
+        return getAddExpr(left);
     }
 
     //加法表达式的辅助函数
-    private Node getF(Node left) throws ParseException
+    private Node getAddExpr(Node left) throws ParseException
     {
         if (isMatch(Type.ADD, Type.SUB))
         {
@@ -82,7 +172,7 @@ public class Parser {
             ((Inner) new_left).setLeft(left);
             ((Inner) new_left).setMiddle(getAddOp());
             ((Inner) new_left).setRight(getMulExpr());
-            return getF(new_left);
+            return getAddExpr(new_left);
         }
         else
             return left;
@@ -105,7 +195,7 @@ public class Parser {
         if (isMatch(Type.LEFT_PARENT))
         {
             consume(Type.LEFT_PARENT);
-            ((Inner) node).setRight(getAddExpr());
+            ((Inner) node).setRight(getExp());
             consume(Type.RIGHT_PARENT);
         }
         else
@@ -128,11 +218,11 @@ public class Parser {
         return node;
         */
         Node left = getOperand();
-        return getT(left);
+        return getMulExpr(left);
     }
 
     //乘法表达式的辅助函数
-    private Node getT(Node left) throws ParseException
+    private Node getMulExpr(Node left) throws ParseException
     {
         if (isMatch(Type.MUL, Type.DIV, Type.MOD))
         {
@@ -140,7 +230,7 @@ public class Parser {
             ((Inner) new_left).setLeft(left);
             ((Inner) new_left).setMiddle(getMulOp());
             ((Inner) new_left).setRight(getOperand());
-            return getT(new_left);
+            return getMulExpr(new_left);
         }
         else
             return left;
@@ -154,8 +244,7 @@ public class Parser {
         {
             case LEFT_PARENT:
                 consume(Type.LEFT_PARENT);
-                //((Inner) node).setLeft(getAddExpr());
-                node = getAddExpr();
+                node = getExp();
                 if ((node.getNodeType() == NodeType.VARIABLE || node.getNodeType() == NodeType.IDENTIFIER)
                         && isMatch(Type.ASSIGN))
                 {
@@ -171,15 +260,17 @@ public class Parser {
                 node = getNumber();//((Inner) node).setLeft(getNumber());
                 break;
             case IDENTIFIER:
+                //todo 这里的操作数还可能是函数的返回值
                 node = getVariable();//((Inner) node).setLeft(getVariable());
                 break;
             case POSITIVE:
             case NEGATIVE:
+            //加入 ! 操作符
+            case NOT:
                 ((Inner) node).setMiddle(getUnaryOp());
                 ((Inner) node).setLeft(getOperand());
                 break;
             default:
-                //todo 报错
                 throw new ParseException(current, "Operand");
         }
         return node;
@@ -194,7 +285,7 @@ public class Parser {
         {
             ((Inner) node).setLeft(left);
             consume(Type.LEFT_BRACKET);
-            //todo 存在同样的问题，逻辑表达式是否能作为数组下标？
+            //todo 将表达式还是算术表达式作为下标？
             ((Inner) node).setMiddle(getAddExpr());
             consume(Type.RIGHT_BRACKET);
         }
@@ -258,7 +349,7 @@ public class Parser {
     //识别正负号
     private Node getUnaryOp() throws ParseException
     {
-        if (isMatch(Type.POSITIVE, Type.NEGATIVE))
+        if (isMatch(Type.POSITIVE, Type.NEGATIVE, Type.NOT))
         {
             Node node = new Leaf(NodeType.UNARY_OP);
             ((Leaf) node).setToken(tokenIterator.next());
@@ -266,6 +357,45 @@ public class Parser {
         }
         else
             throw new ParseException(current, "Unary Operation");
+    }
+
+    //识别逻辑符号
+    // || 和 && 需要区分，所以好像不需要函数来识别
+    private Node getLogOp() throws ParseException
+    {
+        if (isMatch(Type.AND, Type.OR))
+        {
+            Node node = new Leaf(NodeType.LOG_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Logical Operation");
+    }
+
+    //识别判等符号
+    private Node getJudOp() throws ParseException
+    {
+        if (isMatch(Type.NOT_EQUAL, Type.EQUAL))
+        {
+            Node node = new Leaf(NodeType.JUD_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Judge Operation");
+    }
+    //识别比较符号
+    private Node getComOp() throws ParseException
+    {
+        if (isMatch(Type.LEFT_THAN, Type.LEFT_EQUAL, Type.RIGHT_EQUAL, Type.RIGHT_THAN))
+        {
+            Node node = new Leaf(NodeType.COM_OP);
+            ((Leaf) node).setToken(tokenIterator.next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "Compare Operation");
     }
 
     //识别赋值符号

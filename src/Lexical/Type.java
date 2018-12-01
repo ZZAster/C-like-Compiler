@@ -18,6 +18,7 @@ public enum Type {
     //一元
     POSITIVE,
     NEGATIVE,
+    NOT,
     //二元
     ADD,
     SUB,
@@ -31,7 +32,6 @@ public enum Type {
     RIGHT_THAN,
     LEFT_EQUAL,
     RIGHT_EQUAL,
-    NOT,
     AND,
     OR,
     LEFT_PARENT,

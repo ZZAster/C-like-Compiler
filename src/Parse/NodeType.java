@@ -5,6 +5,9 @@ public enum NodeType {
     NULL,
     //非终结符节点
     EXPRESSION,
+    LOG_EXPR, //逻辑表达式
+    JUD_EXPR, //判等表达式
+    COM_EXPR, //比较表达式
     ADD_EXPR, //加法表达式（算术表达式的开始符号）
     MUL_EXPR, //乘法表达式
     OPERAND, //操作数
@@ -12,6 +15,8 @@ public enum NodeType {
     Assign_Stmt,
     //终结符节点
     LOG_OP,
+    JUD_OP, //判等符号，!=, ==
+    COM_OP, //比较符号，>, <, >=, <=
     ADD_OP, //加法符号，+、-
     MUL_OP, //乘法符号，*、/、%
     Assign_OP, //赋值符号，=
