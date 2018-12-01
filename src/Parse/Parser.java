@@ -25,7 +25,10 @@ public class Parser {
     //输入token序列，输出算术表达式的语法树
        public Node test(LinkedList<Token> tokens) throws ParseException{
            tokenIterator = tokens.listIterator();
-           return getAddExpr();
+           Node node = getAddExpr();
+           if (tokenIterator.hasNext())
+               throw new ParseException(current, "Empty");
+           return node;
        }
 
     //每次循环中语法分析的起点
@@ -42,17 +45,47 @@ public class Parser {
     //识别加法表达式
     private Node getAddExpr() throws ParseException
     {
-        Node node = new Inner(NodeType.ADD_EXPR);
-        Node left = getMulExpr();
+        /* 右递归实现方法，由于实际运算需要采用左递归，故改变实现方式为左递归
         if (isMatch(Type.ADD, Type.SUB))
         {
-            ((Inner) node).setLeft(left);
-            ((Inner) node).setMiddle(getAddOp());
-            ((Inner) node).setRight(getAddExpr());
+            //((Inner) node).setLeft(left);
+            //((Inner) node).setMiddle(getAddOp());
+            //((Inner) node).setRight(getAddExpr());
+            Node new_left = new Inner(NodeType.ADD_EXPR);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getAddOp());
+            ((Inner) new_left).setRight(getMulExpr());
+            if (isMatch(Type.ADD, Type.SUB))
+            {
+                ((Inner) node).setLeft(new_left);
+                ((Inner) node).setMiddle(getAddOp());
+                ((Inner) node).setRight(getAddExpr());
+            }
+            else
+                return new_left;
         }
         else
             return left;//((Inner) node).setLeft(left);
         return node;
+        */
+        //左递归实现
+        Node left = getMulExpr();
+        return getF(left);
+    }
+
+    //加法表达式的辅助函数
+    private Node getF(Node left) throws ParseException
+    {
+        if (isMatch(Type.ADD, Type.SUB))
+        {
+            Node new_left = new Inner(NodeType.ADD_EXPR);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getAddOp());
+            ((Inner) new_left).setRight(getMulExpr());
+            return getF(new_left);
+        }
+        else
+            return left;
     }
 
     //识别赋值语句
@@ -83,8 +116,7 @@ public class Parser {
     //识别乘法表达式
     private Node getMulExpr() throws ParseException
     {
-        Node node = new Inner(NodeType.MUL_EXPR);
-        Node left = getOperand();
+        /* 右递归实现
         if (isMatch(Type.MUL, Type.DIV, Type.MOD))
         {
             ((Inner) node).setLeft(left);
@@ -94,6 +126,24 @@ public class Parser {
         else
             return left;//((Inner) node).setLeft(left);
         return node;
+        */
+        Node left = getOperand();
+        return getT(left);
+    }
+
+    //乘法表达式的辅助函数
+    private Node getT(Node left) throws ParseException
+    {
+        if (isMatch(Type.MUL, Type.DIV, Type.MOD))
+        {
+            Node new_left = new Inner(NodeType.MUL_EXPR);
+            ((Inner) new_left).setLeft(left);
+            ((Inner) new_left).setMiddle(getMulOp());
+            ((Inner) new_left).setRight(getOperand());
+            return getT(new_left);
+        }
+        else
+            return left;
     }
 
     //识别操作数

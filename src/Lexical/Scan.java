@@ -36,7 +36,11 @@ public class Scan {
             //扫描是否是操作符、分割符
             switch (ch) {
                 case '+':
-                    Type plus = tokens.getLast().getType();
+                    Type plus;
+                    if (tokens.isEmpty())
+                        plus = Type.NULL;
+                    else
+                        plus = tokens.getLast().getType();
                     if (isOperand(plus))
                         plus = Type.ADD;
                     else
@@ -45,7 +49,11 @@ public class Scan {
                     readChar();
                     continue;
                 case '-':
-                    Type minus = tokens.getLast().getType();
+                    Type minus;
+                    if (tokens.isEmpty())
+                        minus = Type.NULL;
+                    else
+                        minus = tokens.getLast().getType();
                     if (isOperand(minus))
                         minus = Type.SUB;
                     else
