@@ -10,6 +10,7 @@ public class Parser {
     private LinkedList<Node> TreeList = new LinkedList<>();
     private ListIterator<Token> tokenIterator;
     private Token current;
+    private int point = 0;
 
     //输入词法分析得到的序列，输出语法树
     public LinkedList<Node> getTreeList(LinkedList<Token> tokens)
@@ -45,6 +46,23 @@ public class Parser {
     //识别表达式
     private Node getExp() throws ParseException
     {
+        if (isMatch(Type.IDENTIFIER))
+        {
+            int begin = point;
+            Node left = getVariable();
+            int end = point;
+            if (isMatch(Type.ASSIGN))
+            {
+                Node temp = new Inner(NodeType.NUM_ASSIGN);
+                ((Inner) temp).setLeft(left);
+                ((Inner) temp).setMiddle(getAssignOp());
+                ((Inner) temp).setRight(getNumAssign());
+                return temp;
+            }
+            else
+                for (int i = end - begin; i > 0; i--)
+                    previous();
+        }
         return getOrExpr();
     }
 
@@ -59,7 +77,7 @@ public class Parser {
     {
         if (isMatch(Type.OR))
         {
-            Node new_left = new Inner(NodeType.EXPRESSION);
+            Node new_left = new Inner(NodeType.LOG_EXPR);
             ((Inner) new_left).setLeft(left);
             ((Inner) new_left).setMiddle(getLogOp());
             ((Inner) new_left).setRight(getAndExpr());
@@ -178,8 +196,8 @@ public class Parser {
             return left;
     }
 
-    //识别赋值语句
-    private Node getAssignStmt() throws ParseException
+    /* 初始版getNumAssign
+    private Node getNumAssign() throws ParseException
     {
         if (isMatch(Type.NUMBER))
             return getNumber();
@@ -199,8 +217,34 @@ public class Parser {
             consume(Type.RIGHT_PARENT);
         }
         else
-            ((Inner) node).setRight(getAssignStmt());
+            ((Inner) node).setRight(getNumAssign());
         return node;
+    }
+    */
+
+    //识别赋值语句
+    private Node getNumAssign() throws ParseException
+    {
+        if (isMatch(Type.IDENTIFIER))
+        {
+            Node node = new Inner(NodeType.NUM_ASSIGN);
+            int begin = point;
+            ((Inner) node).setLeft(getVariable());
+            int end = point;
+            if (isMatch(Type.ASSIGN))
+            {
+                ((Inner) node).setMiddle(getAssignOp());
+                ((Inner) node).setRight(getNumAssign());
+            }
+            else
+            {
+                for (int i = end - begin; i > 0; i--)
+                    previous();
+                ((Inner) node).setRight(getExp());
+            }
+            return node;
+        }
+        return getExp();
     }
 
     //识别乘法表达式
@@ -248,10 +292,10 @@ public class Parser {
                 if ((node.getNodeType() == NodeType.VARIABLE || node.getNodeType() == NodeType.IDENTIFIER)
                         && isMatch(Type.ASSIGN))
                 {
-                    Node temp = new Inner(NodeType.Assign_Stmt);
+                    Node temp = new Inner(NodeType.NUM_ASSIGN);
                     ((Inner) temp).setLeft(node);
                     ((Inner) temp).setMiddle(getAssignOp());
-                    ((Inner) temp).setRight(getAssignStmt());
+                    ((Inner) temp).setRight(getNumAssign());
                     node = temp;
                 }
                 consume(Type.RIGHT_PARENT);
@@ -285,8 +329,7 @@ public class Parser {
         {
             ((Inner) node).setLeft(left);
             consume(Type.LEFT_BRACKET);
-            //todo 将表达式还是算术表达式作为下标？
-            ((Inner) node).setMiddle(getAddExpr());
+            ((Inner) node).setMiddle(getExp());
             consume(Type.RIGHT_BRACKET);
         }
         else
@@ -300,7 +343,7 @@ public class Parser {
         if (isMatch(Type.IDENTIFIER))
         {
             Node node = new Leaf(NodeType.IDENTIFIER);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -313,7 +356,7 @@ public class Parser {
         if (isMatch(Type.NUMBER))
         {
             Node node = new Leaf(NodeType.NUMBER);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -326,7 +369,7 @@ public class Parser {
         if (isMatch(Type.ADD, Type.SUB))
         {
             Node node = new Leaf(NodeType.ADD_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -339,7 +382,7 @@ public class Parser {
         if (isMatch(Type.MUL, Type.DIV, Type.MOD))
         {
             Node node = new Leaf(NodeType.MUL_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -352,7 +395,7 @@ public class Parser {
         if (isMatch(Type.POSITIVE, Type.NEGATIVE, Type.NOT))
         {
             Node node = new Leaf(NodeType.UNARY_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -366,7 +409,7 @@ public class Parser {
         if (isMatch(Type.AND, Type.OR))
         {
             Node node = new Leaf(NodeType.LOG_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -379,7 +422,7 @@ public class Parser {
         if (isMatch(Type.NOT_EQUAL, Type.EQUAL))
         {
             Node node = new Leaf(NodeType.JUD_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -391,7 +434,7 @@ public class Parser {
         if (isMatch(Type.LEFT_THAN, Type.LEFT_EQUAL, Type.RIGHT_EQUAL, Type.RIGHT_THAN))
         {
             Node node = new Leaf(NodeType.COM_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -404,7 +447,7 @@ public class Parser {
         if (isMatch(Type.ASSIGN))
         {
             Node node = new Leaf(NodeType.Assign_OP);
-            ((Leaf) node).setToken(tokenIterator.next());
+            ((Leaf) node).setToken(next());
             return node;
         }
         else
@@ -420,9 +463,9 @@ public class Parser {
     private Type nextType()
     {
         if (tokenIterator.hasNext()) {
-            current = tokenIterator.next();
+            current = next();
             Type type = current.getType();
-            tokenIterator.previous(); // 还原迭代器的指针位置
+            previous(); // 还原迭代器的指针位置
             return type;
         }
         else
@@ -438,11 +481,10 @@ public class Parser {
     {
         if (tokenIterator.hasNext())
         {
-            current = tokenIterator.next();
+            current = next();
             if (current.getType() == type)
                 return;
         }
-        //TODO 进行报错
         throw new ParseException(current, type.toString());
     }
 
@@ -460,5 +502,24 @@ public class Parser {
         return false;
     }
 
+    /**
+     * 将iterator的next()函数进行二次封装，使其能够记录迭代次数
+     * @return iterator.next()
+     */
+    private Token next()
+    {
+        point++;
+        return tokenIterator.next();
+    }
 
+    /**
+     * 将iterator的previous()函数进行二次封装，使其能够记录迭代次数
+     * 返回值暂时用不上，为了形式和next()统一
+     * @return iterator.previous()
+     */
+    private Token previous()
+    {
+        point--;
+        return tokenIterator.previous();
+    }
 }
