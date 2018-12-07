@@ -14,6 +14,7 @@ public enum Type {
     STRING,
     VOID,
     RETURN,
+    DO,
     //操作符
     //一元
     POSITIVE,

@@ -16,7 +16,7 @@ public class Scan {
     private LinkedList<Token> tokens = new LinkedList<>();
 
     private String[] keywords = {"if", "else", "while", "for", "print", "scan", "int", "double",
-            "bool", "string", "void", "return"};
+            "bool", "string", "void", "return", "do"};
 
     public Scan(String filename) throws IOException{
             input = new BufferedInputStream(new FileInputStream(filename));

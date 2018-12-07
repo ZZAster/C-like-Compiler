@@ -4,6 +4,7 @@ public enum NodeType {
     //空节点
     NULL,
     //非终结符节点
+    PROGRAM, //程序
     STMT_SEQ, //语句序列
     EXPRESSION, //到时候可能要给表达式节点打个统一的标签，先留着
     LOG_EXPR, //逻辑表达式
@@ -23,7 +24,17 @@ public enum NodeType {
     ASSIGN_STMT, //ASSIGN_STMT是赋值语句（可以赋值数组）
     NUM_ASSIGN, //NUM_ASSIGN只能赋值数值并返回这个值
     DECLARE_STMT, //声明语句
+    IF_STMT, //if语句
+    WHILE_STMT, //while语句
+    FOR_STMT, //for语句
+    FOR_LIST, //for语句中for()，括号里面的东西
     COMPLEX_TYPE, //复合类型，int[], double[]
+    ARG_DEC_LIST, //参数声明列表
+    ARG_CLOSURE, //参数声明闭包
+    ARG_DECLARE, //参数声明
+    FUNC_SIGNATURE, //函数签名
+    FUNC_DECLARE, //函数声明
+    FUNC_CLOSURE, //函数声明闭包
     //终结符节点
     LOG_OP, //逻辑符号，||，&&（and的优先级大于or）
     JUD_OP, //判等符号，!=, ==
@@ -38,5 +49,6 @@ public enum NodeType {
     READ, //scan
     STRING, //字符串
     PRIME_TYPE, //int 和 double
+    VOID, //void用于返回类型和参数列表
     EMPTY, //和number一起表示数组声明时的下标，对应的Token Type 为NULL
 }

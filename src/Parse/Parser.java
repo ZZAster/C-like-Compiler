@@ -7,43 +7,176 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 public class Parser {
-    private LinkedList<Node> TreeList = new LinkedList<>();
+    //private LinkedList<Node> TreeList = new LinkedList<>();
     private ListIterator<Token> tokenIterator;
     private Token current;
     private int point = 0;
 
+
+    //以词法分析结果为参数构造语法分析器
+    public Parser(LinkedList<Token> tokens)
+    {
+        tokenIterator = tokens.listIterator();
+    }
+
     //输入token序列，输出算术表达式的语法树
-       public Node test(LinkedList<Token> tokens) throws ParseException{
-           tokenIterator = tokens.listIterator();
-           Node node = getExp();
-           if (tokenIterator.hasNext())
-               throw new ParseException(current, "Empty");
-           return node;
-       }
+    public Node test() throws ParseException {
+        Node node = getExp();
+        if (tokenIterator.hasNext())
+            throw new ParseException(current, "Empty");
+        return node;
+    }
+
+    //识别程序，这种方法以函数为单位构造树，并将程序视为树的列表
+    private LinkedList<Node> getProgram() throws ParseException
+    {
+        LinkedList<Node> NodeList = new LinkedList<>();
+        while (tokenIterator.hasNext())
+            NodeList.add(getFuncDeclare());
+        return NodeList;
+    }
+
+    /*这种方法以程序为单位构造语法树
+    //识别程序
+    private Node getProgram() throws ParseException
+    {
+        Node node = new Inner(NodeType.PROGRAM);
+        ((Inner) node).setLeft(getFuncDeclare());
+        if (tokenIterator.hasNext())
+            ((Inner) node).setMiddle(getFuncClosure());
+        return node;
+    }
+
+    //识别函数声明闭包
+    private Node getFuncClosure() throws ParseException
+    {
+        if (isMatch(Type.INT, Type.DOUBLE, Type.VOID))
+        {
+            Node node = new Inner(NodeType.FUNC_CLOSURE);
+            ((Inner) node).setLeft(getFuncDeclare());
+            if (tokenIterator.hasNext())
+                ((Inner) node).setMiddle(getFuncClosure());
+            return node;
+        }
+        else
+            throw new ParseException(current, "function declare");
+    }
+    */
+
+    //识别函数声明
+    private Node getFuncDeclare() throws ParseException
+    {
+        Node node = new Inner(NodeType.FUNC_DECLARE);
+        ((Inner) node).setLeft(getFuncSign());
+        if (isMatch(Type.SEMICOLON))
+        {
+            ((Inner) node).setMiddle(getEmpty());
+            consume(Type.SEMICOLON);
+        }
+        else if (isMatch(Type.LEFT_BRACE))
+        {
+            consume(Type.LEFT_BRACE);
+            ((Inner) node).setMiddle(getStmtSeq());
+            consume(Type.RIGHT_BRACE);
+        }
+        else
+            throw new ParseException(current, "function define");
+        return node;
+    }
+
+    //识别函数签名
+    private Node getFuncSign() throws ParseException
+    {
+        Node node = new Inner(NodeType.FUNC_SIGNATURE);
+        if (isMatch(Type.VOID))
+            ((Inner) node).setLeft(getVoid());
+        else
+            ((Inner) node).setLeft(getType());
+        ((Inner) node).setMiddle(getID());
+        consume(Type.LEFT_PARENT);
+        ((Inner) node).setRight(getArgDecList());
+        consume(Type.RIGHT_PARENT);
+        return node;
+    }
+
+    //识别参数声明列表
+    private Node getArgDecList() throws ParseException
+    {
+        if (isMatch(Type.VOID))
+            return getVoid();
+        Node node = new Inner(NodeType.ARG_DEC_LIST);
+        ((Inner) node).setLeft(getArgDeclare());
+        ((Inner) node).setMiddle(getArgClosure());
+        return node;
+    }
+
+    //识别参数声明闭包
+    private Node getArgClosure() throws ParseException
+    {
+        consume(Type.COMMA);
+        Node left = getArgDeclare();
+        if (isMatch(Type.COMMA))
+        {
+            Node node = new Inner(NodeType.ARG_CLOSURE);
+            ((Inner) node).setLeft(left);
+            ((Inner) node).setMiddle(getArgClosure());
+            return node;
+        }
+        return left;
+    }
+
+    //识别参数声明
+    private Node getArgDeclare() throws ParseException
+    {
+        Node node = new Inner(NodeType.ARG_DECLARE);
+        ((Inner) node).setLeft(getType());
+        ((Inner) node).setMiddle(getID());
+        return node;
+    }
 
     //识别基本语句
-    private Node getStmt()
+    private Node getStmt() throws ParseException
     {
+        Node node = new Node();
         switch (nextType())
         {
             // if-stmt, while-stmt, for-stmt, declare-stmt
             // assign-stmt, write-stmt, read-stmt, return-stmt, empty-stmt( ;)
             case IF:
+                return getIfStmt();
+            case DO:
             case WHILE:
+                return getWhileStmt();
             case FOR:
+                return getForStmt();
             case INT:
             case DOUBLE:
+                node =  getDeclareStmt();
+                break;
             case IDENTIFIER:
+                node = getAssignStmt();
+                break;
             case PRINT:
+                node = getWriteStmt();
+                break;
             case SCAN:
+                node = getReadStmt();
+                break;
             case RETURN:
+                node = getReturnStmt();
+                break;
             case SEMICOLON:
+                node = getEmpty();
+                break;
+            default:
+                //todo 这里是不是应该进行语义报错？
         }
-        return null;
+        consume(Type.SEMICOLON);
+        return node;
     }
 
     //识别语句序列
-    private Node getStmtSeq()
+    private Node getStmtSeq() throws ParseException
     {
         Node node = new Inner(NodeType.STMT_SEQ);
         Node left = getStmt();
@@ -54,10 +187,93 @@ public class Parser {
         return node;
     }
 
+    //识别语句块
+    private Node getStmtBlock() throws ParseException
+    {
+        if (isMatch(Type.LEFT_BRACE))
+        {
+            consume(Type.LEFT_BRACE);
+            Node node = getStmtSeq();
+            consume(Type.RIGHT_BRACE);
+            return node;
+        }
+        else
+            return getStmt();
+    }
+
+    //识别if语句
+    private Node getIfStmt() throws ParseException
+    {
+        consume(Type.IF);
+        consume(Type.LEFT_PARENT);
+        Node node = new Inner(NodeType.IF_STMT);
+        ((Inner) node).setLeft(getExp());
+        consume(Type.RIGHT_PARENT);
+        ((Inner) node).setMiddle(getStmtBlock());
+        if (isMatch(Type.ELSE))
+        {
+            consume(Type.ELSE);
+            ((Inner) node).setRight(getStmtBlock());
+        }
+        return node;
+    }
+
+    //识别while语句
+    private Node getWhileStmt() throws ParseException
+    {
+        Node node = new Inner(NodeType.WHILE_STMT);
+        if (isMatch(Type.WHILE))
+        {
+            consume(Type.WHILE);
+            consume(Type.LEFT_PARENT);
+            ((Inner) node).setLeft(getExp());
+            consume(Type.RIGHT_PARENT);
+            ((Inner) node).setMiddle(getStmtBlock());
+        }
+        else if (isMatch(Type.DO))
+        {
+            consume(Type.DO);
+            ((Inner) node).setMiddle(getStmtBlock());
+            consume(Type.WHILE);
+            consume(Type.LEFT_PARENT);
+            ((Inner) node).setLeft(getExp());
+            consume(Type.RIGHT_PARENT);
+            consume(Type.SEMICOLON);
+        }
+        return node;
+    }
+
+    //识别for语句
+    private Node getForStmt() throws ParseException
+    {
+        consume(Type.FOR);
+        consume(Type.LEFT_PARENT);
+        Node node = new Inner(NodeType.FOR_STMT);
+        ((Inner) node).setLeft(getForList());
+        consume(Type.RIGHT_PARENT);
+        ((Inner) node).setMiddle(getStmtBlock());
+        return node;
+    }
+
+    //识别for-list
+    private Node getForList() throws ParseException
+    {
+        Node node = new Inner(NodeType.FOR_LIST);
+        if (isMatch(Type.INT, Type.DOUBLE))
+            ((Inner) node).setLeft(getDeclareStmt());
+        else
+            ((Inner) node).setLeft(getAssignStmt());
+        consume(Type.SEMICOLON);
+        ((Inner) node).setMiddle(getExp());
+        consume(Type.SEMICOLON);
+        ((Inner) node).setRight(getAssignStmt());
+        return node;
+    }
+
     /**识别表达式
      * 下面一系列函数用于识别各子类表达式的节点
      * 每个函数都有一个同名的辅助函数用于完成对左递归形式的识别
-     * @return 返回最高优先级操作符对应的表达式（exp || exp）结点，或者赋值节点（variable = exp）
+     * @return 返回最低优先级操作符对应的表达式（exp || exp）结点，或者赋值节点（variable = exp）
      * @throws ParseException 抛出语法异常
      */
     private Node getExp() throws ParseException
@@ -227,7 +443,7 @@ public class Parser {
     }
 
     //识别scan语句
-    private Node getScanStmt() throws ParseException
+    private Node getReadStmt() throws ParseException
     {
         Node node = new Inner(NodeType.READ_STMT);
         ((Inner) node).setLeft(getScan());
@@ -252,6 +468,11 @@ public class Parser {
         Node node = new Inner(NodeType.DECLARE_STMT);
         ((Inner) node).setLeft(getType());
         ((Inner) node).setMiddle(getID());
+        if (isMatch(Type.ASSIGN))
+        {
+            consume(Type.ASSIGN);
+            ((Inner) node).setRight(getLvalue());
+        }
         return node;
     }
 
@@ -441,6 +662,7 @@ public class Parser {
             throw new ParseException(current, "scan()");
     }
 
+    //识别数据类型
     private Node getType() throws ParseException
     {
         if (isMatch(Type.INT, Type.DOUBLE))
@@ -452,12 +674,7 @@ public class Parser {
                 Node node = new Inner(NodeType.COMPLEX_TYPE);
                 consume(Type.LEFT_BRACKET);
                 if (isMatch(Type.RIGHT_BRACKET))
-                {
-                    Node mid = new Leaf(NodeType.EMPTY);
-                    // 这个Token并不存在于词法识别返回的token序列中
-                    ((Leaf) mid).setToken(new Token("ε", Type.NULL, -1, -1));
-                    ((Inner) node).setMiddle(mid);
-                }
+                    ((Inner) node).setMiddle(getEmpty());
                 else
                     ((Inner) node).setMiddle(getNumber());
                 consume(Type.RIGHT_BRACKET);
@@ -467,6 +684,28 @@ public class Parser {
         }
         else
             throw new ParseException(current, "int or double");
+    }
+
+    //识别void
+    private Node getVoid() throws ParseException
+    {
+        if (isMatch(Type.VOID))
+        {
+            Node node = new Leaf(NodeType.VOID);
+            ((Leaf) node).setToken(next());
+            return node;
+        }
+        else
+            throw new ParseException(current, "void");
+    }
+
+    //识别空
+    private Node getEmpty()
+    {
+        Node node = new Leaf(NodeType.EMPTY);
+        // 这个Token并不存在于词法识别返回的token序列中
+        ((Leaf) node).setToken(new Token("ε", Type.NULL, -1, -1));
+        return node;
     }
 
     //识别字符串

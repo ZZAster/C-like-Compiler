@@ -51,12 +51,12 @@ public class MyRunner extends JFrame{
                     getInput(input);
                     try {
                         Scan scan = new Scan("input.txt");
-                        Parser parser = new Parser();
+                        Parser parser = new Parser(scan.getTokens());
                         Calculate calculator = new Calculate();
-                        //注释掉的是对语法树以xml形式打印
-                        //output_area.setText(parser.test(scan.getTokens()).toString());
+                        //这是对语法树以xml形式打印的语句
+                        output_area.setText(parser.test().toString());
                         //这一条是将语法树作为参数输入进计算函数，输出表达式计算结果
-                        output_area.setText(calculator.getNodeValue(parser.test(scan.getTokens())).getValue()+"");
+                        //output_area.setText(calculator.getNodeValue(parser.test()).getValue()+"");
                     } catch (IOException | ParseException | LexicalException ie){
                         output_area.setText(ie.getMessage());
                     }
