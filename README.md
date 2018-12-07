@@ -53,7 +53,7 @@
 ## 程序
 - program -> (func-declare)+
 
-##函数
+## 函数
 - func-declare -> func-sign func-define
 - func-define -> { stmt-sequence } | ;
 - func-sign -> type identifier ( arg-dec-list )
@@ -69,7 +69,7 @@
 - exps -> exp exp-clos
 - exp-clos -> , exp exp-clos | ε
 
-##语句
+## 语句
 - stmt-sequence -> statement stmt-sequence | ε
 - statement -> if-stmt | while-stmt | assign-stmt ; | read-stmt ; | write-stmt ;<br>
 			   declare-stmt ; | return-stmt ; | call-stmt ; | for-stmt ; | ;
@@ -89,7 +89,7 @@
 - condition -> exp
 - change -> identifier = exp
 
-##表达式
+## 表达式
 - exp -> log-expr | add-expr
 - log-expr -> log-expr logical com-expr | com-expr
 - com-expr -> com-expr compare jud-expr | jud-expr
@@ -98,7 +98,7 @@
 - mul-expr -> mul-expr multiple operand | operand
 - operand -> ( add-expr ) | number | variable | unary operand | ( num-assign ) | call-stmt
 
-##运算符
+## 运算符
 - logical -> || | &&
 - islog-exprqual -> != | ==
 - compare -> > | < | >= | <=
@@ -106,7 +106,7 @@
 - addative -> + | -
 - unary -> ! | + | -
 
-##说明
+## 说明
 - 函数应支持先声明后定义的形式
 - 参数列表以int,double以及数组为参数
 - 参数列表中的数组下标可以为空或数字
