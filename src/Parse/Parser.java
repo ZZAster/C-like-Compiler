@@ -28,7 +28,7 @@ public class Parser {
     }
 
     //识别程序，这种方法以函数为单位构造树，并将程序视为树的列表
-    private LinkedList<Node> getProgram() throws ParseException
+    public LinkedList<Node> getProgram() throws ParseException
     {
         LinkedList<Node> NodeList = new LinkedList<>();
         while (tokenIterator.hasNext())
@@ -104,9 +104,12 @@ public class Parser {
     {
         if (isMatch(Type.VOID))
             return getVoid();
+        else if (isMatch(Type.RIGHT_PARENT))
+            return getEmpty();
         Node node = new Inner(NodeType.ARG_DEC_LIST);
         ((Inner) node).setLeft(getArgDeclare());
-        ((Inner) node).setMiddle(getArgClosure());
+        if (isMatch(Type.COMMA))
+            ((Inner) node).setMiddle(getArgClosure());
         return node;
     }
 
@@ -322,7 +325,7 @@ public class Parser {
     //识别逻辑与表达式
     private Node getAndExpr() throws ParseException
     {
-        Node left = getComExpr();
+        Node left = getJudExpr();
         return getAndExpr(left);
     }
 
